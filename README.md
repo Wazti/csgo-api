@@ -8,6 +8,7 @@
 Dillinger requires [Node.js](https://nodejs.org/) v4+ to run.
 
 Install the dependencies and devDependencies and start the server.
+`http://localhost:8000/api`
 
 ```sh
 $ cd csgo-api
@@ -28,3 +29,16 @@ $ npm run all
 cd csgo-api
 mongod --dbpath ${Путь}/csgo-api/data    
 ```
+### Апишки
+`/top`
+Возвращает топ 30 команд
+`/matchesRecent`
+    Возвращает матчи за последние сутки
+`/matches`
+    Возвращает все матчи, которые есть в базе
+`/team/${name}`
+    Возвращает все матчи, в которых участвовала команда ${name}
+`/maps`
+    Возвращает все карты, которые есть в базе
+
+
