@@ -20,7 +20,7 @@ async function all(){
             if (date -  3 * 31 * 24 * 60 * 60 * 1000 <= map.dateApproximate) {
                 db.getDB().collection('maps').updateOne(
                     {id: map.mapStatsId},
-                    {$set:{'map': map.map, 'team1': { 'name': team.team.name, 'id': team.team.id }, 
+                    {$set:{'map': map.map, 'date': map.dateApproximate, 'team1': { 'name': team.team.name, 'id': team.team.id }, 
                     'team2': { 'id' : map.enemyTeam.id, 'name' : map.enemyTeam.name }}},
                     {upsert: true}, function(err, result) {
                         if (err) {
@@ -38,32 +38,36 @@ async function all(){
     db.getDB().collection('maps').find({}).toArray( async function(err, mapArr) {
         let count = 0
         let len = mapArr.length
+        const date = new Date().valueOf()
         for (const map of mapArr) {
             count += 1
-            try {
-                await sleep(3000)
-                console.log(map.id)
-                let mapInfo = await getMapInfo(map.id)
-                await sleep(3000)
-                console.log(mapInfo.matchPageID, 'ID')
-                let { match, demo } = await getMatchMongo(mapInfo.matchPageID)
-                if (!match) {
-                    match = await getMatchInfo(mapInfo.matchPageID)
-                    demo = match.demos.find((item) => item.name.includes('GOTV'))
-                    console.log('Добавили матч')
-                } else {
-                    console.log('Уже есть матч такой')
-                }
-                db.getDB().collection('matches').updateOne(
-                    {id: mapInfo.matchPageID},
-                    {$set:{'team1': map.team1, 'team2': map.team2, 'demo': demo.link, 'date': match.date}, $addToSet: {'maps': map}},
-                    { upsert: true},  function (err, result){
-                    if (err) {
-                        console.log(err)
+            if (date -  3 * 31 * 24 * 60 * 60 * 1000 <= map.date) {
+                try {
+                    await sleep(2000)
+                    console.log(map.id)
+                    let mapInfo = await getMapInfo(map.id)
+                    await sleep(2000)
+                    console.log(mapInfo.matchPageID, 'ID')
+                    let { match, demo } = await getMatchMongo(mapInfo.matchPageID)
+                    console.log(match)
+                    if (!match) {
+                        match = await getMatchInfo(mapInfo.matchPageID)
+                        demo = match.demos.find((item) => item.name.includes('GOTV'))
+                        console.log('Добавили матч')
+                    } else {
+                        console.log('Уже есть матч такой')
                     }
-                })
-            } catch (e) {
-                console.log(e)
+                    db.getDB().collection('matches').updateOne(
+                        {id: mapInfo.matchPageID},
+                        {$set:{'team1': map.team1, 'team2': map.team2, 'demo': demo.link, 'date': match.date}, $addToSet: {'maps': map}},
+                        { upsert: true},  function (err, result){
+                        if (err) {
+                            console.log(err)
+                        }
+                    })
+                } catch (e) {
+                    console.log(e)
+                }
             }
             console.log(`${count} из ${len}`)
         }
@@ -79,14 +83,14 @@ async function lastDay(){
             const res = await db.getDB().collection('teams').findOne({$or: [{name: match.team1.name}, { name: match.team2.name }]})
             console.log(res)
             if (res) {
-                await sleep(4500)
+                await sleep(3500)
                 try {
                     const mtch = await getMatchInfo(match.id)
                     const maps = mtch.maps.map((map)=>{
                         if (map.statsId) {
                             db.getDB().collection('maps').updateOne(
                                 {id: map.statsId},
-                                {$set:{'map': map.name, 'team1': { 'name': mtch.team1.name, ' id': mtch.team1.id }, 
+                                {$set:{'map': map.name, 'date': match.date, 'team1': { 'name': mtch.team1.name, ' id': mtch.team1.id }, 
                                 'team2': { 'id' : mtch.team2.id, 'name' : mtch.team2.name }}},
                                 {upsert: true}, function(err, result) {
                                     if (err) {
@@ -95,7 +99,7 @@ async function lastDay(){
                                     console.log(`Положили ${map.statsId}`)
                                 }
                             )
-                            return { id: map.statsId, 'map': map.name, 'team1': { 'name': mtch.team1.name, 'id': mtch.team1.id }, 
+                            return { id: map.statsId, 'map': map.name, 'date': match.date, 'team1': { 'name': mtch.team1.name, 'id': mtch.team1.id }, 
                             'team2': { 'id' : mtch.team2.id, 'name' : mtch.team2.name }} 
                         }
                     })
@@ -149,6 +153,16 @@ async function getResults(){
     const obj = await HLTV.getResults({ startPage: 0, endPage: 2 });
     return obj;
 }
+
+
+async function clear(){
+    await sleep(1000)
+    db.getDB().collection('maps').drop(function (err, result) {
+        if (err) throw err;
+        if (result) console.log("Collection successfully deleted.");
+        db.close();
+    });
+}
 db.connect((err)=>{
     // If err unable to connect to database
     // End application
@@ -159,7 +173,7 @@ db.connect((err)=>{
     // Successfully connected to database
     // Start up our Express Application
     // And listen for Request
-    else{
+    else {
         app.listen(5000,()=>{
             console.log('connected to database, app listening on port 3000');
         });
@@ -171,12 +185,17 @@ for (var i=0; i<process.argv.length;i++) {
             console.log('Получаем инфу за все время')
             all();
             break;
+        case 'clear':
+            console.log('Чистить коллекцию')
+            clear();
+            break;
         case 'lastDay':
             console.log('Получаем инфу за последний день')
             lastDay();
             break;
     }
 }
-  
+
 module.exports.all = all;
+module.exports.clear = clear;
 module.exports.lastDay = lastDay;

@@ -8,6 +8,7 @@
     "start": "node index",
     "all": "node static.js all",
     "recent": "node static.js lastDay",
+    "clear": "node static.js clear",
     "dev": "nodemon index",
     "startToday": "npm run recent && npm run start"
   },
