@@ -145,15 +145,18 @@ class FrameParser:
             df["MatchId"] = self.match_id
             df["MapName"] = game_map
             df["Seconds"] = pd.to_numeric(df["TicksSinceStart"]) / 128
-            df["SteamId"] = df["SteamId"].astype(int)
+            # try:
+            #     df["SteamId"] = df["SteamId"]
+            # except OverflowError:
+            #     print(df["SteamId"])
             df["Tick"] = df["Tick"].astype(int)
-            df["EqVal"] = df["EqVal"].astype(int)
+            df["EqVal"] = df["EqVal"].astype('int64')
             df["Hp"] = df["Hp"].astype(int)
-            df["Armor"] = df["Armor"].astype(int)
+            df["Armor"] = df["Armor"].astype('int64')
             df["X"] = pd.to_numeric(df["X"])
             df["Y"] = pd.to_numeric(df["Y"])
             df["Z"] = pd.to_numeric(df["Z"])
-            df["AreaId"] = df["AreaId"].astype(int)
+            df["AreaId"] = df["AreaId"].astype('int64')
             df["HasHelmet"] = df["HasHelmet"].astype(bool)
             df["HasDefuse"] = df["HasDefuse"].astype(bool)
             return df

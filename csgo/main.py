@@ -2,7 +2,7 @@ from csgo.parser import DemoParser
 
 # Create parser object
 # Set log=True above if you want to produce a logfile for the parser
-demo_parser = DemoParser(demofile = "bigg2nuke.dem", match_id = "astralis-vs-liquid-m1-inferno.dem")
+demo_parser = DemoParser(demofile = "DemoManager/SKADE/Inferno/18-04-2021&Young Ninjas.dem", match_id = "astralis-vs-liquid-m1-inferno.dem")
 
 
 # Parse the demofile, output results to dictionary with df name as key

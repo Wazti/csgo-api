@@ -6,10 +6,11 @@ from urllib.request import urlopen, Request
 
 import requests
 
+
 import patoolib
 
 from shutil import copyfile
-
+from shutil import rmtree
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -59,7 +60,7 @@ def download(url):
 
 
 def unarchive(filename):
-    os.system('unrar x ' + filename + " temp")
+    os.system('7z e ' + filename + " -otemp")
     os.remove(filename)
     print("Demos were unarchived!")
 
@@ -85,8 +86,8 @@ def buildHierarchy(dt: Data):
         if not os.path.exists(team2_map_path):
             os.mkdir(team2_map_path)
 
-    #download(dt.demo)
-    #unarchive(os.path.join(temp_dir, "demo.rar"))
+    download(dt.demo)
+    unarchive(os.path.join(temp_dir, "demo.rar"))
 
     for dem in os.listdir(temp_dir):
         print(dem.split('-')[len(dem.split('-')) - 1].split('.')[0].capitalize())
@@ -110,9 +111,15 @@ def main():
     for dt in data_dict:
         print("Processing match " + str(count) + " out of " + str(len(data_dict)))
         maps = []
-        for map in dt["maps"]:
-            maps.append(map["map"])
-        buildHierarchy(Data(int(dt["id"]), dt["date"], dt["demo"], maps, dt["team1"]["name"], dt["team2"]["name"]))
+        #420
+        if count > 0:
+            for map in dt["maps"]:
+                maps.append(map[0]["map"])
+            try:
+                buildHierarchy(Data(int(dt["id"]), dt["date"], dt["demo"], maps, dt["team1"]["name"], dt["team2"]["name"]))
+            except Exception:
+                rmtree("temp")
+                os.mkdir("temp")
         count += 1
 
 

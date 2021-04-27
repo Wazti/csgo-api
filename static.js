@@ -113,7 +113,7 @@ async function lastDay(){
                         }
                     })
                 } catch (e) {
-                    console.log('Матч хуета')
+                    console.log(e)
                 }
             }
         }
